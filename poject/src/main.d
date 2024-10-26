@@ -1,1 +1,1 @@
-src/main.o: src/main.c include/sqlite3.h
+src/main.o: src/main.c include/crud.h include/sqlite3.h

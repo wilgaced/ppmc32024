@@ -1,4 +1,3 @@
-
 /***********************************************************/
 /*           Programación para mecatrónicos                */
 /*  Nombre:    Wilkins Cedano                              */
@@ -9,136 +8,50 @@
 /***********************************************************/
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <sqlite3.h>
+#include "crud.h"
 
-// Function prototypes
-void createTable(sqlite3 *db);
-void insertStudent(sqlite3 *db, int id, const char *name, int age, const char *major);
-void displayStudents(sqlite3 *db);
-void updateStudent(sqlite3 *db, int id, const char *name, int age, const char *major);
-void deleteStudent(sqlite3 *db, int id);
-void closeDatabase(sqlite3 *db);
-
-int main() {
-    sqlite3 *db;
-    int rc = sqlite3_open("student.db", &db);
-
-    if (rc) {
-        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-        return 1;
-    } else {
-        printf("Opened database successfully.\n");
+// Callback function to print rows
+int print_row(void *NotUsed, int argc, char **argv, char **colName) {
+    for (int i = 0; i < argc; i++) {
+        printf("%s = %s\n", colName[i], argv[i] ? argv[i] : "NULL");
     }
-
-    createTable(db);
-    insertStudent(db, 1, "Alice", 20, "Computer Science");
-    insertStudent(db, 2, "Bob", 22, "Mathematics");
-    insertStudent(db, 3, "Charlie", 21, "Physics");
-    
-    printf("\nDisplaying Students:\n");
-    displayStudents(db);
-    
-    printf("\nUpdating Student with ID 2:\n");
-    updateStudent(db, 2, "Bob Updated", 23, "Statistics");
-    displayStudents(db);
-
-    printf("\nDeleting Student with ID 1:\n");
-    deleteStudent(db, 1);
-    displayStudents(db);
-
-    closeDatabase(db);
+    printf("\n");
     return 0;
 }
 
-// Function to create the student table
-void createTable(sqlite3 *db) {
-    char *errMsg = 0;
-    const char *sql = "CREATE TABLE IF NOT EXISTS Students("
-                      "ID INT PRIMARY KEY NOT NULL,"
-                      "Name TEXT NOT NULL,"
-                      "Age INT NOT NULL,"
-                      "Major TEXT NOT NULL);";
-    int rc = sqlite3_exec(db, sql, 0, 0, &errMsg);
+int main() {
+    char name[20];
+    int edad = 0;
+    float salario = 0.0;
+    CRUD crud;
+    const char *db_name = "test.db";
 
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "SQL error: %s\n", errMsg);
-        sqlite3_free(errMsg);
-    } else {
-        printf("Table created successfully.\n");
-    }
-}
+    if (crud_open(&crud, db_name)) return 1;
 
-// Function to insert a student record
-void insertStudent(sqlite3 *db, int id, const char *name, int age, const char *major) {
-    char *errMsg = 0;
-    char sql[256];
-    snprintf(sql, sizeof(sql), "INSERT INTO Students (ID, Name, Age, Major) VALUES (%d, '%s', %d, '%s');", id, name, age, major);
+    // Create table
+    const char *create_sql = "CREATE TABLE IF NOT EXISTS Users (id INTEGER PRIMARY KEY, name TEXT, age INTEGER, salary REAL);";
+    crud_create_table(&crud, create_sql);
 
-    int rc = sqlite3_exec(db, sql, 0, 0, &errMsg);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "SQL error: %s\n", errMsg);
-        sqlite3_free(errMsg);
-    } else {
-        printf("Record inserted successfully.\n");
-    }
-}
+    // Insert data with int and float
+    printf("inserto los datos de la parsona\r\n");
+    scanf("%s",name);
+    scanf("%d", &edad);
+    scanf("%f", &salario);
+    const char *insert_sql = "INSERT INTO Users (name, age, salary) VALUES (?, ?, ?);";
+    crud_insert(&crud, insert_sql, name, edad, salario);
 
-// Function to display all students
-void displayStudents(sqlite3 *db) {
-    const char *sql = "SELECT * FROM Students;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    // Read data
+    const char *select_sql = "SELECT * FROM Users;";
+    crud_read(&crud, select_sql, print_row);
 
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "Failed to fetch data: %s\n", sqlite3_errmsg(db));
-        return;
-    }
+    // Update data with int and float
+    const char *update_sql = "UPDATE Users SET name = ?, age = ?, salary = ? WHERE id = 1;";
+    crud_update(&crud, update_sql, "Alice Smith", 31, 60000.0);
 
-    while (sqlite3_step(stmt) == SQLITE_ROW) {
-        int id = sqlite3_column_int(stmt, 0);
-        const unsigned char *name = sqlite3_column_text(stmt, 1);
-        int age = sqlite3_column_int(stmt, 2);
-        const unsigned char *major = sqlite3_column_text(stmt, 3);
+    // Delete data using an int
+    const char *delete_sql = "DELETE FROM Users WHERE id = ?;";
+    crud_delete(&crud, delete_sql, 1);
 
-        printf("ID: %d, Name: %s, Age: %d, Major: %s\n", id, name, age, major);
-    }
-
-    sqlite3_finalize(stmt);
-}
-
-// Function to update a student's information
-void updateStudent(sqlite3 *db, int id, const char *name, int age, const char *major) {
-    char *errMsg = 0;
-    char sql[256];
-    snprintf(sql, sizeof(sql), "UPDATE Students SET Name = '%s', Age = %d, Major = '%s' WHERE ID = %d;", name, age, major, id);
-
-    int rc = sqlite3_exec(db, sql, 0, 0, &errMsg);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "SQL error: %s\n", errMsg);
-        sqlite3_free(errMsg);
-    } else {
-        printf("Record updated successfully.\n");
-    }
-}
-
-// Function to delete a student record
-void deleteStudent(sqlite3 *db, int id) {
-    char *errMsg = 0;
-    char sql[128];
-    snprintf(sql, sizeof(sql), "DELETE FROM Students WHERE ID = %d;", id);
-
-    int rc = sqlite3_exec(db, sql, 0, 0, &errMsg);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "SQL error: %s\n", errMsg);
-        sqlite3_free(errMsg);
-    } else {
-        printf("Record deleted successfully.\n");
-    }
-}
-
-// Function to close the database connection
-void closeDatabase(sqlite3 *db) {
-    sqlite3_close(db);
-    printf("Database closed successfully.\n");
+    crud_close(&crud);
+    return 0;
 }
