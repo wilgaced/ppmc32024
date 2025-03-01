@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.dpf": "yaml",
+        "crud.h": "c"
+    }
+}

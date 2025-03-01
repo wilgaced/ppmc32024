@@ -9,9 +9,10 @@
 /***********************************************************/
 
 #include <stdio.h>
+#include <stdbool.h>
 
 //Varibles globales
-__uint8_t arrayuni[3] = {1,5,9};
+__uint8_t arrayuni[8] = {1,5,7,6,3,2,4,8};   //arreglo de tipo entero de 8 posiciones
 char array[8][8]={{"wfafaabc"},
                   {"diddfsff"},
                   {"ghljrrgi"},
@@ -20,53 +21,85 @@ char array[8][8]={{"wfafaabc"},
                   {"ghljrngi"},
                   {"gamjrrsi"},
                   {"ghmjrrgi"} };   //arreglo de tipo entero de 8 posiciones 
+char datain = '0';
 int opcion = 0;
+bool noanumber = false;
 
-int main(int argc, char const *argv[])
+// prototipo de funcion
+void clean_stdin(void);
+
+int main(void)
 {
     
     do
     {
-        printf("favor de elegir la opcion\r\n");
-        printf("1: para lala\r\n");
-        printf("2: para lele\r\n");
-        printf("3: para tutu\r\n");
-        printf("4: para salir\r\n");
-        scanf("%d", &opcion);
-
+        printf("1. Imprimir arreglo de enteros\r\n");
+        printf("2. Imprimir arreglo de caracteres\r\n");
+        printf("3. Salir\r\n");
+        
+        do
+        {
+           datain = getchar();
+           clean_stdin();
+           opcion = datain - '0';
+           if((opcion < 0) || opcion > 9){
+                noanumber = true;
+                printf("no es un numero intentelo de nuevo");
+           }
+           else
+           {
+            noanumber = false;
+           }
+           
+                
+        } while (noanumber);
+        
         switch (opcion)
         {
         case 1:
-            printf("usted seleciono el 1\r\n");
+            for (int i = 0; i < 8; i++)
+            {
+                printf("%d \n", arrayuni[i]);
+            }
+            printf("\r\n");
             break;
         case 2:
-            printf("usted seleciono el 2\r\n");
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    printf("%c ", array[i][j]);
+                }
+                printf("\r\n");
+            }
             break;
         case 3:
-            printf("usted seleciono el 3\r\n");
-            break;   
-        
+            break;
         default:
-            printf("Opcion no valida intentelo de nuevo\r\n");
+            printf("Opcion no valida\r\n");
             break;
         }
-    } while (opcion != 4);
 
-    arrayuni[1] = 4;
-    printf("Elemento es: %d del arreglo array posicion %d\r\n", arrayuni[1], 1);
-    
-    array[2][2] = 'w';
-    printf("Elemento No. %c del arreglo array fila %d columna %d\r\n", array[2][2], 2,2);
-
-    for (int i = 0; i < 3; i++)
+    array[4][3] = 'Z';
+    if (array[4][3] == 'a')
     {
-        for (int j = 0; j < 3; j++)
-        {
-            printf("Elemento No. %c del arreglo array fila %d columna %d\r\n", array[i][j], i,j);
-        }
-        
-        
+        printf("Se cambio el valor de la posicion 4,3 a 'a'\r\n");
     }
-    
-    return 0;
+    } while (opcion != 3);
+
+
+    for(;;);
+    while(1);
+}
+
+/*@brief funcion para limpiar el buffer de entrada*/
+/*@param[in] void                                 */
+/*@return void                                    */
+/*@ Pass/ Fail criteria:  none.                   */
+void clean_stdin(void)
+{
+    int c;
+    do {
+        c = getchar();
+    } while (c != '\n' && c != EOF);
 }

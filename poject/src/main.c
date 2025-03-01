@@ -26,7 +26,7 @@ int main() {
     CRUD crud;
     const char *db_name = "test.db";
 
-    if (crud_open(&crud, db_name)) return 1;
+    if (crud_open(&crud, "login.db")) return 1;
 
     // Create table
     const char *create_sql = "CREATE TABLE IF NOT EXISTS Users (id INTEGER PRIMARY KEY, name TEXT, age INTEGER, salary REAL);";
